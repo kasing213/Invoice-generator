@@ -1,0 +1,36 @@
+{
+  "name": "invoice-generator",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node src/bot.js",
+    "dev": "nodemon src/bot.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "export:customers": "node scripts/export-customers.js",
+    "export:excel": "node scripts/export-excel.js",
+    "export:csv": "node scripts/export-excel.js --csv",
+    "test:qr": "node scripts/test-qr.js",
+    "test:lookup": "node scripts/test-customer-lookup.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.9.0",
+    "body-parser": "^2.2.0",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "form-data": "^4.0.2",
+    "fs-extra": "^11.3.0",
+    "handlebars": "^4.7.8",
+    "mongoose": "^8.14.3",
+    "node-telegram-bot-api": "^0.66.0",
+    "puppeteer": "^24.8.2",
+    "qrcode": "^1.5.4",
+    "xlsx": "^0.18.5"
+  },
+  "keywords": [],
+  "description": "",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}

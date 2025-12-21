@@ -1,0 +1,7 @@
+{
+  "watch": ["src"],
+  "ext": "js,json",
+  "delay": "300ms",
+  "exec": "node src/bot.js"
+}
+

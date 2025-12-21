@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="km">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>វិក្កយបត្រ</title>
+
+  <!-- Tailwind (same version as your file) -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+
+  <style>
+    @font-face {
+      font-family: 'Khmer OS';
+      src: url('https://cdnjs.cloudflare.com/ajax/libs/KhmerOS/KhmerOS.ttf') format('truetype');
+    }
+    body { font-family: 'Khmer OS', system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+    @media print {
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+    .cell { @apply border border-gray-400 p-2 text-sm; }
+    .cell-header { @apply font-semibold text-gray-900; }
+  </style>
+</head>
+<body class="bg-white">
+  <div class="max-w-4xl mx-auto p-4">
+
+    <!-- Yellow title bar -->
+    <div class="rounded-sm border border-gray-400">
+      <div class="bg-yellow-300 text-center py-2 text-base font-bold tracking-wide">
+        ការិយាល័យគ្រប់គ្រងបុរីព្រៃសំព័រ(ផ្នែកគ្រប់គ្រងទឹក)
+      </div>
+
+      <!-- Top grid like the sample -->
+      <div class="grid grid-cols-12 gap-0 text-gray-800">
+
+        <!-- Left block: ABA / Account name -->
+        <div class="cell col-span-4">
+          <div class="cell-header">លេខគណនី</div>
+          <div class="mt-1">ABA: {{aba}}</div>
+          <div class="mt-1">({{name}})</div>
+        </div>
+
+        <!-- Middle block: Phone -->
+        <div class="cell col-span-4">
+          <div class="cell-header">ទូរស័ព្ទ</div>
+          <div class="mt-1">Tel: {{phone}}</div>
+        </div>
+
+        <!-- Right block: Date + Status -->
+        <div class="cell col-span-4">
+          <div class="grid grid-cols-2">
+            <div class="cell col-span-1">
+              <div class="cell-header">កាលបរិច្ឆេទ</div>
+              <div class="mt-1">{{currentDate}}</div>
+            </div>
+            <div class="cell col-span-1">
+              <div class="cell-header">ស្ថានភាព</div>
+              <div class="mt-1">
+                {{#if (eq status "paid")}}
+                  <span class="text-green-600 font-bold">បានទូទាត់</span>
+                {{else}}
+                  <span class="text-red-600 font-bold">ត្រូវបង់</span>
+                {{/if}}
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 text-right">
+            <span class="text-xs text-gray-600">វិក្កយបត្រ #{{invoiceNumber}}</span>
+          </div>
+        </div>
+
+        <!-- Meter section -->
+        <div class="cell col-span-12">
+          <div class="grid grid-cols-12 text-center">
+            <div class="cell col-span-3"><span class="cell-header">ទឹកចាស់</span><div class="mt-1 text-blue-700 font-semibold">{{oldMeter}}</div></div>
+            <div class="cell col-span-3"><span class="cell-header">ទឹកថ្មី</span><div class="mt-1 text-blue-700 font-semibold">{{newMeter}}</div></div>
+            <div class="cell col-span-3"><span class="cell-header">ប្រើប្រាស់ (ម³)</span><div class="mt-1 text-blue-700 font-semibold">{{usage}}</div></div>
+            <div class="cell col-span-3"><span class="cell-header">កំណត់ថ្ងៃផុតកំណត់</span><div class="mt-1 text-red-600 font-semibold">{{dueDate}}</div></div>
+          </div>
+        </div>
+
+        <!-- Items table (Water, Trash, etc.) -->
+        <div class="cell col-span-12 p-0">
+          <table class="w-full border-collapse text-sm">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="border border-gray-400 p-2 text-left">មុខទំនិញ/សេវា</th>
+                <th class="border border-gray-400 p-2 text-center">ចំនួន</th>
+                <th class="border border-gray-400 p-2 text-right">តម្លៃឯកតា (៛)</th>
+                <th class="border border-gray-400 p-2 text-right">សរុប (៛)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {{#each items}}
+                <tr>
+                  <td class="border border-gray-300 p-2">{{description}}</td>
+                  <td class="border border-gray-300 p-2 text-center">{{qty}}</td>
+                  <td class="border border-gray-300 p-2 text-right">{{unitPrice}}</td>
+                  <td class="border border-gray-300 p-2 text-right">{{total}}</td>
+                </tr>
+              {{/each}}
+              {{#if protectMeterFee}}
+<tr>
+  <td class="border border-gray-300 p-2">២. សេវាថែទាំនាឡិកាទឹក</td>
+  <td class="border border-gray-300 p-2 text-center">1</td>
+  <td class="border border-gray-300 p-2 text-right">{{protectMeterFee}}</td>
+  <td class="border border-gray-300 p-2 text-right">{{protectMeterFee}}</td>
+</tr>
+{{/if}}
+{{#if securityFee}}
+<tr>
+  <td class="border border-gray-300 p-2">៣. សន្តិសុខ</td>
+  <td class="border border-gray-300 p-2 text-center">1</td>
+  <td class="border border-gray-300 p-2 text-right">{{securityFee}}</td>
+  <td class="border border-gray-300 p-2 text-right">{{securityFee}}</td>
+</tr>
+{{/if}}
+
+            </tbody>
+            <tfoot>
+              <tr class="bg-gray-100">
+                <td colspan="3" class="border border-gray-400 p-2 text-right font-bold">សរុបរួម</td>
+                <td class="border border-gray-400 p-2 text-right font-bold">{{grandTotal}}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+
+<!-- QR + Payer name strip -->
+<div class="cell col-span-12">
+  <div class="grid grid-cols-12 gap-2 items-center">
+    <!-- QR (2/12) -->
+    <div class="col-span-2 flex flex-col items-center">
+      <span class="text-xs mb-1">ស្កេន QR</span>
+      {{#if qrImagePath}}
+        <img src="{{qrImagePath}}" alt="QR" class="w-24 h-24 object-contain border p-1 rounded">
+      {{else}}
+        <div class="w-24 h-24 border border-dashed grid place-items-center text-[10px] text-gray-500">
+          No QR
+        </div>
+      {{/if}}
+    </div>
+
+    <!-- QR Reference Name (10/12) -->
+    <div class="col-span-10 pl-2">
+      <div class="text-xl font-bold tracking-wide break-words">CHAN.K& THOEURN T.</div>
+    </div>
+  </div>
+</div>
+
+        <!-- Notes -->
+        <div class="cell col-span-12 text-xs leading-relaxed">
+          <div class="font-semibold mb-2">*បញ្ជាក់*</div>
+          <div class="mb-2">ផុតកំណត់បង់ប្រាក់ត្រឹមថ្ងៃទី 12 រៀងរាល់ខែ</div>
+          <div class="mb-2">*ម៉ោងធ្វើការពីម៉ោង ០៩ ដល់ម៉ោង១២ រសៀល និងម៉ោង០១ ដល់០៤ល្ងាច</div>
+          <ol class="list-decimal ml-5 space-y-1">
+            <li>បង់យឺត១ថ្ងៃពិន័យ ២០០០ រៀល​។</li>
+            <li>បង់យឺត១សប្ដាហ៏បន្ទាប់ពីថ្ងៃផុតកំណត់ដោយមិនបានជូនដំណឹងមកក្រុមហ៊ុន នឹងត្រូវផ្អាក់ការផ្គត់ផ្គង់ទឹក ។</li>
+            <li>សេវាពលកម្មតភ្ជាប់បណ្ដាញឡើងវិញ ៤០.០០០រៀល</li>
+            <li>បើជនណាមួយលួចតបណ្ដាញទឹកដោយគ្មានការអនុញ្ញាតិត្រូវផាកពិន័យ ១.០០០.០០០រៀល​ ។</li>
+          </ol>
+        </div>
+
+        <!-- Big red total like sample -->
+        <div class="cell col-span-12">
+          <div class="text-right text-lg">
+            <span class="mr-2 font-semibold">តម្លៃត្រូវបង់ចុងក្រោយ</span>
+            <span class="text-red-600 font-extrabold">{{grandTotal}}</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="text-center text-gray-600 text-xs mt-3">
+      អរគុណសម្រាប់ការគាំទ្រ!
+    </div>
+  </div>
+</body>
+</html>

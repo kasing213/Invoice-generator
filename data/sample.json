@@ -1,0 +1,21 @@
+{
+  "invoiceNumber": "INV-B040",
+  "currentDate": "2025-05-13",
+  "clientName": "CHAN K. & THEOURN T.",
+  "aba": "086 228 226",
+  "phone": "086 22 62 25",
+  "items": [
+    { "desc": "បង់សំណង់", "qty": 0, "unitPrice": 2000, "total": 0 },
+    { "desc": "សេវាកម្មថែទាំបរិក្ខារ", "qty": 1, "unitPrice": 2000, "total": 2000 },
+    { "desc": "ថ្លៃថែទាំកង់ទុ័រ", "qty": 1, "unitPrice": 2000, "total": 2000 }
+  ],
+  "totalAmount": 4000,
+  "status": "unpaid",
+  "dueDate": "2025-05-12",
+  "notes": {
+    "instruction": "សូមផ្ទេរប្រាក់តាមរយៈ ABA Mobile ដោយប្រើលេខគណនីខាងលើ ឬស្កេន QR code។",
+    "reminder": "សូមជួយ: ទូទាត់ក្នុងរយៈពេលកំណត់ត្រឹមថ្ងៃទី 12 ក្នុងខែនេះ",
+    "confirm": "ប្រសិនបើបានទូទាត់ហើយ សូមផ្ញើស្លាកបង់ប្រាក់តាម Telegram"
+  },
+  "qrPath": "assets/qr.png"
+}
