@@ -18,6 +18,7 @@ const RATE_LIMITS = {
   userCooldown: 5 * 1000, // 5 seconds between user requests
   messageDelay: 200, // 200ms between bot messages
   dailyInvoiceLimit: 1000, // Max 1000 invoices per user per day
+  registrationCooldown: 24 * 60 * 60 * 1000, // 24 hours between /me registrations
   globalRateLimit: 30, // Max 30 messages per second
   bulkMode: true // Enable bulk sending mode
 };
@@ -43,6 +44,20 @@ const bot = new TelegramBot(token, {
 // ===============================
 function delay(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function formatCooldown(ms) {
+  const totalMinutes = Math.ceil(ms / 60000);
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours === 0) {
+    return `${minutes}m`;
+  }
+  if (minutes === 0) {
+    return `${hours}h`;
+  }
+  return `${hours}h ${minutes}m`;
 }
 
 function isUserRateLimited(userId) {
@@ -329,10 +344,23 @@ bot.onText(/\/me/, async (msg) => {
   }
 
   try {
-    // Check if this chat/group is already registered
-    const exists = await Invoice.findOne({ groupId: chatId, status: 'registered' });
+    // Check if this chat/group registered within the last 24 hours
+    const lastRegistration = await Invoice.findOne({ chatId, status: 'registered' })
+      .sort({ createdAt: -1 });
+    const now = new Date();
 
-    if (!exists) {
+    if (lastRegistration) {
+      const elapsed = now - lastRegistration.createdAt;
+      if (elapsed < RATE_LIMITS.registrationCooldown) {
+        const remaining = RATE_LIMITS.registrationCooldown - elapsed;
+        await sendMessageWithRateLimit(chatId,
+          `⏳ /me can be used once every 24h. Try again in ${formatCooldown(remaining)}.`
+        );
+        return;
+      }
+    }
+
+    if (!lastRegistration) {
       await new Invoice({
         customer: fullName || 'Unknown',
         amount: 0,
@@ -344,6 +372,12 @@ bot.onText(/\/me/, async (msg) => {
         status: 'registered'
       }).save();
       console.log(`🧾 /me registered: ${fullName} (${groupId})`);
+    } else {
+      lastRegistration.customer = fullName || lastRegistration.customer || 'Unknown';
+      lastRegistration.username = username;
+      lastRegistration.groupName = groupName;
+      lastRegistration.createdAt = now;
+      await lastRegistration.save();
     }
 
     // Get daily usage
@@ -355,7 +389,7 @@ bot.onText(/\/me/, async (msg) => {
     });
 
     // Enhanced concise reply with thank you
-    const isNewUser = !exists;
+    const isNewUser = !lastRegistration;
     const info = isNewUser
       ? `✅ Registered! Thanks for using our bot.\n💬 Chat ID: ${chatId}\n📊 Usage: ${dailyInvoices}/${RATE_LIMITS.dailyInvoiceLimit}`
       : `👋 ${fullName}\n💬 Chat ID: ${chatId}\n📊 Usage: ${dailyInvoices}/${RATE_LIMITS.dailyInvoiceLimit}`;
