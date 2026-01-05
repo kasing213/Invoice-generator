@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  general-invoice-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: general-invoice-api
+    ports:
+      - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
+    env_file:
+      - .env.general
+    volumes:
+      # Persist generated invoices
+      - ./invoices:/app/invoices
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+# Optional: Add MongoDB container for local development
+# Uncomment if you want to run MongoDB locally instead of using Atlas
+#
+#   mongodb:
+#     image: mongo:7
+#     container_name: general-invoice-mongodb
+#     ports:
+#       - "27017:27017"
+#     volumes:
+#       - mongodb_data:/data/db
+#     restart: unless-stopped
+#
+# volumes:
+#   mongodb_data:

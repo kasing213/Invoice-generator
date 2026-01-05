@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.*
+!.env.general.example
+
+# Documentation
+*.md
+docs/
+
+# Tests
+coverage/
+.nyc_output/
+__tests__/
+*.test.js
+
+# Generated files
+invoices/*.pdf
+invoices/*.jpg
+invoices/*.png
+
+# IDE
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
