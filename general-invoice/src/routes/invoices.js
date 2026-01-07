@@ -7,6 +7,7 @@ const {
   updateInvoice,
   deleteInvoice,
   updateStatus,
+  verifyInvoice,
   generateInvoicePdf
 } = require('../controllers/invoiceController');
 
@@ -19,6 +20,7 @@ router.delete('/:id', deleteInvoice);
 
 // Special operations
 router.patch('/:id/status', updateStatus);
+router.patch('/:id/verify', verifyInvoice);
 router.get('/:id/pdf', generateInvoicePdf);
 
 module.exports = router;

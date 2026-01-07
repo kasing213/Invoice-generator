@@ -43,6 +43,15 @@
     .status-paid { background: #D1FAE5; color: #059669; }
     .status-overdue { background: #FEE2E2; color: #DC2626; }
     .status-cancelled { background: #F3F4F6; color: #6B7280; }
+
+    .verification-pending { background: #FEF3C7; color: #92400E; }
+    .verification-verified { background: #D1FAE5; color: #059669; }
+    .verification-rejected { background: #FEE2E2; color: #DC2626; }
+
+    .payment-box {
+      background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%);
+      border: 2px solid #22C55E;
+    }
   </style>
 </head>
 <body class="bg-gray-100 p-8">
@@ -65,10 +74,36 @@
         </div>
       </div>
 
-      <div class="mt-6">
+      <div class="mt-6 flex gap-2">
         <span class="status-badge status-{{status}}">{{uppercase status}}</span>
+        <span class="status-badge verification-{{verificationStatus}}">{{uppercase verificationStatus}}</span>
       </div>
     </div>
+
+    <!-- Payment Information Box -->
+    {{#if bank}}
+    <div class="p-6 mx-8 mt-6 payment-box rounded-lg">
+      <h3 class="text-sm font-bold text-green-800 uppercase tracking-wider mb-4">Payment Information</h3>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-green-700 uppercase">Bank</p>
+          <p class="text-lg font-bold text-green-900">{{bank}}</p>
+        </div>
+        <div>
+          <p class="text-xs text-green-700 uppercase">Account Number</p>
+          <p class="text-lg font-bold text-green-900">{{expectedAccount}}</p>
+        </div>
+        <div>
+          <p class="text-xs text-green-700 uppercase">Amount</p>
+          <p class="text-lg font-bold text-green-900">{{currency}} {{fmt grandTotal}}</p>
+        </div>
+        <div>
+          <p class="text-xs text-green-700 uppercase">Verification</p>
+          <p class="text-lg font-bold text-green-900">{{uppercase verificationStatus}}</p>
+        </div>
+      </div>
+    </div>
+    {{/if}}
 
     <!-- Client Info -->
     <div class="p-8 border-b border-gray-200">

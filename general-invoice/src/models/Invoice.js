@@ -52,7 +52,21 @@ const invoiceSchema = new mongoose.Schema({
 
   // Optional metadata
   notes: { type: String },
-  currency: { type: String, default: 'USD' },
+
+  // Payment expectation fields (required for verification)
+  bank: { type: String, required: true },
+  expectedAccount: { type: String, required: true },
+  currency: { type: String, required: true, default: 'USD' },
+
+  // Verification state fields (updated by external OCR service)
+  verificationStatus: {
+    type: String,
+    enum: ['pending', 'verified', 'rejected'],
+    default: 'pending'
+  },
+  verifiedAt: { type: Date },
+  verifiedBy: { type: String },
+  verificationNote: { type: String },
 
   // Reference for external integrations
   externalRef: { type: String }
@@ -73,19 +87,15 @@ invoiceSchema.pre('save', async function(next) {
 
 // Calculate totals before save
 invoiceSchema.pre('save', function(next) {
-  // Calculate item totals
   if (this.items && this.items.length > 0) {
     this.items.forEach(item => {
       item.total = item.quantity * item.unitPrice;
     });
-
-    // Calculate subtotal
     this.subtotal = this.items.reduce((sum, item) => sum + item.total, 0);
   } else {
     this.subtotal = 0;
   }
 
-  // Calculate discount
   let discountAmount = 0;
   if (this.discountRate > 0) {
     discountAmount = this.subtotal * (this.discountRate / 100);
@@ -94,15 +104,12 @@ invoiceSchema.pre('save', function(next) {
     discountAmount = this.discount;
   }
 
-  // Calculate tax (after discount)
   const taxableAmount = this.subtotal - discountAmount;
   if (this.taxRate > 0) {
     this.tax = taxableAmount * (this.taxRate / 100);
   }
 
-  // Calculate grand total
   this.grandTotal = taxableAmount + (this.tax || 0);
-
   next();
 });
 
@@ -141,5 +148,6 @@ invoiceSchema.index({ status: 1 });
 invoiceSchema.index({ createdAt: -1 });
 invoiceSchema.index({ 'client.name': 'text', 'client.email': 'text' });
 invoiceSchema.index({ dueDate: 1, status: 1 });
+invoiceSchema.index({ verificationStatus: 1 });
 
 module.exports = mongoose.model('Invoice', invoiceSchema);

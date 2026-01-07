@@ -39,6 +39,7 @@ const getAllInvoices = async (req, res, next) => {
   try {
     const {
       status,
+      verificationStatus,
       search,
       fromDate,
       toDate,
@@ -53,6 +54,10 @@ const getAllInvoices = async (req, res, next) => {
 
     if (status) {
       query.status = status;
+    }
+
+    if (verificationStatus) {
+      query.verificationStatus = verificationStatus;
     }
 
     if (search) {
@@ -157,7 +162,8 @@ const updateInvoice = async (req, res, next) => {
     // Update fields
     const allowedFields = [
       'client', 'items', 'tax', 'taxRate', 'discount', 'discountRate',
-      'status', 'dueDate', 'notes', 'currency', 'externalRef'
+      'status', 'dueDate', 'notes', 'currency', 'externalRef',
+      'bank', 'expectedAccount'
     ];
 
     allowedFields.forEach(field => {
@@ -259,6 +265,70 @@ const updateStatus = async (req, res, next) => {
 };
 
 /**
+ * Verify invoice payment (called by external OCR service)
+ * PATCH /api/invoices/:id/verify
+ */
+const verifyInvoice = async (req, res, next) => {
+  try {
+    const { verificationStatus, verifiedBy, verificationNote } = req.body;
+
+    if (!verificationStatus) {
+      return res.status(400).json({
+        success: false,
+        error: 'verificationStatus is required'
+      });
+    }
+
+    const validStatuses = ['pending', 'verified', 'rejected'];
+    if (!validStatuses.includes(verificationStatus)) {
+      return res.status(400).json({
+        success: false,
+        error: `Invalid verificationStatus. Must be one of: ${validStatuses.join(', ')}`
+      });
+    }
+
+    const updateData = {
+      verificationStatus,
+      verifiedAt: new Date()
+    };
+
+    if (verifiedBy) {
+      updateData.verifiedBy = verifiedBy;
+    }
+
+    if (verificationNote) {
+      updateData.verificationNote = verificationNote;
+    }
+
+    // If verified, also mark invoice as paid
+    if (verificationStatus === 'verified') {
+      updateData.status = 'paid';
+      updateData.paidAt = new Date();
+    }
+
+    const invoice = await Invoice.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    );
+
+    if (!invoice) {
+      return res.status(404).json({
+        success: false,
+        error: 'Invoice not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: invoice
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * Generate and download PDF for invoice
  * GET /api/invoices/:id/pdf
  */
@@ -307,5 +377,6 @@ module.exports = {
   updateInvoice,
   deleteInvoice,
   updateStatus,
+  verifyInvoice,
   generateInvoicePdf
 };

@@ -27,7 +27,14 @@ const formatInvoiceForTemplate = (invoice) => {
     dueDate: invoice.dueDate,
     paidAt: invoice.paidAt,
     notes: invoice.notes || '',
-    currency: invoice.currency || 'USD'
+    currency: invoice.currency || 'USD',
+    // Payment verification fields
+    bank: invoice.bank || '',
+    expectedAccount: invoice.expectedAccount || '',
+    verificationStatus: invoice.verificationStatus || 'pending',
+    verifiedAt: invoice.verifiedAt,
+    verifiedBy: invoice.verifiedBy || '',
+    verificationNote: invoice.verificationNote || ''
   };
 };
 
@@ -55,6 +62,11 @@ const formatInvoiceForExport = (invoice) => {
     'Discount': invoice.discount || 0,
     'Grand Total': invoice.grandTotal || 0,
     'Currency': invoice.currency || 'USD',
+    'Bank': invoice.bank || '',
+    'Expected Account': invoice.expectedAccount || '',
+    'Verification Status': invoice.verificationStatus || 'pending',
+    'Verified At': invoice.verifiedAt ? new Date(invoice.verifiedAt).toISOString().split('T')[0] : '',
+    'Verified By': invoice.verifiedBy || '',
     'Created Date': invoice.createdAt ? new Date(invoice.createdAt).toISOString().split('T')[0] : '',
     'Due Date': invoice.dueDate ? new Date(invoice.dueDate).toISOString().split('T')[0] : '',
     'Paid Date': invoice.paidAt ? new Date(invoice.paidAt).toISOString().split('T')[0] : '',
