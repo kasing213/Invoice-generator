@@ -56,6 +56,7 @@ const invoiceSchema = new mongoose.Schema({
   // Payment expectation fields (required for verification)
   bank: { type: String, required: true },
   expectedAccount: { type: String, required: true },
+  recipientName: { type: String },  // Name on the receiving account for OCR verification
   currency: { type: String, required: true, default: 'USD' },
 
   // Verification state fields (updated by external OCR service)

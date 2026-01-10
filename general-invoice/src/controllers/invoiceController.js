@@ -163,7 +163,7 @@ const updateInvoice = async (req, res, next) => {
     const allowedFields = [
       'client', 'items', 'tax', 'taxRate', 'discount', 'discountRate',
       'status', 'dueDate', 'notes', 'currency', 'externalRef',
-      'bank', 'expectedAccount'
+      'bank', 'expectedAccount', 'recipientName'
     ];
 
     allowedFields.forEach(field => {
