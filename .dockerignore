@@ -66,3 +66,20 @@ scripts/
 # Generated files
 invoices/
 *.pdf
+
+# Large files not needed for deployment
+*.zip
+invoices.zip
+Noto_Sans_Khmer.zip
+
+# General invoice API (separate project)
+general-invoice/
+
+# Exports directory
+exports/
+
+# QR codes directory (local only)
+qr-codes/
+
+# Config directory (use env vars instead)
+config/
