@@ -9,8 +9,10 @@
     "export:customers": "node scripts/export-customers.js",
     "export:excel": "node scripts/export-excel.js",
     "export:csv": "node scripts/export-excel.js --csv",
+    "export:invoices-all": "node scripts/export-invoices-all.js",
     "test:qr": "node scripts/test-qr.js",
-    "test:lookup": "node scripts/test-customer-lookup.js"
+    "test:lookup": "node scripts/test-customer-lookup.js",
+    "broadcast": "node src/broadcast.js"
   },
   "author": "",
   "license": "ISC",
@@ -23,6 +25,7 @@
     "fs-extra": "^11.3.0",
     "handlebars": "^4.7.8",
     "mongoose": "^8.14.3",
+    "multer": "^2.0.2",
     "node-telegram-bot-api": "^0.66.0",
     "puppeteer": "^24.8.2",
     "qrcode": "^1.5.4",

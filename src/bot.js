@@ -9,6 +9,7 @@ const sendInvoiceToTelegram = require('./sendtelegram');
 const Invoice = require('../models/invoice');
 const { findCustomer, searchCustomers, getAllCustomers, formatCustomerInfo } = require('../utils/customerLookup');
 const { generateRegistrationQR, generateBatchQR, getInvoiceData, isQRCodeAvailable } = require('../utils/qrGenerator');
+const { startUploadServer } = require('./uploadServer');
 require('dotenv').config();
 
 // ===============================
@@ -130,6 +131,7 @@ async function connectToMongo() {
   try {
     await mongoose.connect(process.env.MONGO_URL);
     console.log('✅ MongoDB connected');
+    startUploadServer();
   } catch (err) {
     console.error('❌ MongoDB connection error:', err);
     // Retry after 5 seconds

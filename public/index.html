@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .nav {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+    .nav .badge {
+      background: #22c55e;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .main {
+      max-width: 640px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+    .drop-zone {
+      border: 2px dashed #475569;
+      border-radius: 8px;
+      padding: 40px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      color: #94a3b8;
+    }
+    .drop-zone:hover { border-color: #6366f1; }
+    .drop-zone.dragover {
+      border-color: #6366f1;
+      background: rgba(99,102,241,0.08);
+    }
+    .drop-zone.has-file {
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.06);
+      color: #4ade80;
+    }
+    .drop-zone p { font-size: 14px; }
+    .drop-zone .icon { font-size: 32px; margin-bottom: 8px; }
+    .file-name {
+      margin-top: 8px;
+      font-weight: 600;
+      font-size: 13px;
+      word-break: break-all;
+    }
+    input[type="file"] { display: none; }
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #4f46e5; }
+    .btn:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    .status {
+      margin-top: 16px;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: none;
+    }
+    .status.success { display: block; background: rgba(34,197,94,0.1); color: #4ade80; border: 1px solid rgba(34,197,94,0.2); }
+    .status.error   { display: block; background: rgba(239,68,68,0.1); color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
+    .status.loading { display: block; background: rgba(99,102,241,0.1); color: #818cf8; border: 1px solid rgba(99,102,241,0.2); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 12px;
+    }
+    table th, table td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid #334155;
+    }
+    table th {
+      background: #0f172a;
+      font-weight: 600;
+      color: #94a3b8;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    table td { color: #cbd5e1; }
+    .preview-note {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #64748b;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Invoice Dashboard</h1>
+    <span class="badge">LIVE</span>
+  </nav>
+
+  <div class="main">
+    <div class="card">
+      <h2>Upload Excel to Database</h2>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="icon">+</div>
+        <p>Drag & drop an Excel file here, or click to browse</p>
+        <div class="file-name" id="fileName"></div>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls">
+
+      <button class="btn" id="uploadBtn" disabled>Upload</button>
+      <div class="status" id="status"></div>
+    </div>
+
+    <div id="preview"></div>
+  </div>
+
+  <script>
+    var dropZone = document.getElementById('dropZone');
+    var fileInput = document.getElementById('fileInput');
+    var uploadBtn = document.getElementById('uploadBtn');
+    var statusEl = document.getElementById('status');
+    var fileNameEl = document.getElementById('fileName');
+    var previewEl = document.getElementById('preview');
+    var selectedFile = null;
+
+    dropZone.addEventListener('click', function () { fileInput.click(); });
+
+    fileInput.addEventListener('change', function () {
+      if (fileInput.files.length > 0) setFile(fileInput.files[0]);
+    });
+
+    dropZone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', function () {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      if (e.dataTransfer.files.length > 0) setFile(e.dataTransfer.files[0]);
+    });
+
+    function setFile(file) {
+      var ext = file.name.split('.').pop().toLowerCase();
+      if (ext !== 'xlsx' && ext !== 'xls') {
+        showStatus('Only .xlsx and .xls files are allowed', 'error');
+        return;
+      }
+      selectedFile = file;
+      fileNameEl.textContent = file.name;
+      dropZone.classList.add('has-file');
+      uploadBtn.disabled = false;
+      statusEl.className = 'status';
+      previewEl.innerHTML = '';
+    }
+
+    uploadBtn.addEventListener('click', function () {
+      if (!selectedFile) return;
+
+      var formData = new FormData();
+      formData.append('file', selectedFile);
+
+      uploadBtn.disabled = true;
+      showStatus('Uploading...', 'loading');
+
+      var xhr = new XMLHttpRequest();
+      xhr.open('POST', '/api/upload-excel');
+
+      xhr.onload = function () {
+        var data;
+        try { data = JSON.parse(xhr.responseText); } catch (e) { data = null; }
+
+        if (xhr.status === 200 && data && data.success) {
+          showStatus(data.message, 'success');
+          if (data.preview && data.preview.length > 0) {
+            renderPreview(data.preview, data.count);
+          }
+        } else {
+          showStatus(data ? data.error : 'Upload failed', 'error');
+        }
+        uploadBtn.disabled = !selectedFile;
+      };
+
+      xhr.onerror = function () {
+        showStatus('Network error', 'error');
+        uploadBtn.disabled = !selectedFile;
+      };
+
+      xhr.send(formData);
+    });
+
+    function showStatus(msg, type) {
+      statusEl.textContent = msg;
+      statusEl.className = 'status ' + type;
+    }
+
+    function renderPreview(rows, total) {
+      var cols = ['customer', 'oldMeter', 'newMeter', 'usage', 'amount'];
+      var html = '<div class="card"><h2>Inserted Preview</h2><table><thead><tr>';
+      for (var i = 0; i < cols.length; i++) {
+        html += '<th>' + cols[i] + '</th>';
+      }
+      html += '</tr></thead><tbody>';
+      for (var r = 0; r < rows.length; r++) {
+        html += '<tr>';
+        for (var c = 0; c < cols.length; c++) {
+          var val = rows[r][cols[c]];
+          if (cols[c] === 'amount') val = Number(val).toLocaleString();
+          html += '<td>' + (val != null ? val : '') + '</td>';
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      if (total > rows.length) {
+        html += '<p class="preview-note">Showing ' + rows.length + ' of ' + total + ' rows</p>';
+      }
+      html += '</div>';
+      previewEl.innerHTML = html;
+    }
+  </script>
+</body>
+</html>
