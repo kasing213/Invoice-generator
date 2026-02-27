@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Broadcast - Invoice Dashboard</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+    }
+    .nav {
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .nav h1 { font-size: 18px; font-weight: 700; color: #f1f5f9; }
+    .nav .badge {
+      background: #22c55e;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 9999px;
+    }
+    .nav-links {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    .nav-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.2s, color 0.2s;
+    }
+    .nav-links a:hover { background: #334155; color: #f1f5f9; }
+    .nav-links a.active { background: #6366f1; color: #fff; }
+    .main {
+      max-width: 640px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+    }
+    .card h2 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      color: #f1f5f9;
+    }
+
+    /* Caption textarea */
+    .caption-area {
+      width: 100%;
+      min-height: 100px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 12px;
+      color: #e2e8f0;
+      font-family: inherit;
+      font-size: 14px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .caption-area:focus { border-color: #6366f1; }
+    .caption-hint {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 6px;
+    }
+
+    /* Drop zone */
+    .drop-zone {
+      border: 2px dashed #475569;
+      border-radius: 8px;
+      padding: 32px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+      color: #94a3b8;
+      margin-top: 16px;
+    }
+    .drop-zone:hover { border-color: #6366f1; }
+    .drop-zone.dragover {
+      border-color: #6366f1;
+      background: rgba(99,102,241,0.08);
+    }
+    .drop-zone.has-files {
+      border-color: #22c55e;
+      background: rgba(34,197,94,0.06);
+      color: #4ade80;
+    }
+    .drop-zone p { font-size: 14px; }
+    .drop-zone .icon { font-size: 28px; margin-bottom: 6px; }
+    input[type="file"] { display: none; }
+
+    /* File list */
+    .file-list {
+      margin-top: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .file-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 13px;
+    }
+    .file-item .file-thumb {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #334155;
+      flex-shrink: 0;
+    }
+    .file-item .file-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 4px;
+      background: #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .file-item .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+    .file-item .file-name {
+      font-weight: 500;
+      color: #e2e8f0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .file-item .file-size {
+      font-size: 11px;
+      color: #64748b;
+    }
+    .file-item .file-remove {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 18px;
+      padding: 4px;
+      line-height: 1;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .file-item .file-remove:hover { background: rgba(239,68,68,0.15); }
+
+    /* Toggle switch */
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding: 12px 0;
+      border-top: 1px solid #334155;
+    }
+    .toggle-label {
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .toggle-desc {
+      font-size: 12px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      cursor: pointer;
+    }
+    .toggle-switch input { display: none; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #475569;
+      border-radius: 12px;
+      transition: background 0.2s;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
+    }
+    .toggle-switch input:checked + .toggle-slider {
+      background: #f59e0b;
+    }
+    .toggle-switch input:checked + .toggle-slider::after {
+      transform: translateX(20px);
+    }
+
+    /* Recipient count */
+    .recipient-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 12px;
+      padding: 10px 14px;
+      background: #0f172a;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .recipient-count {
+      font-weight: 700;
+      font-size: 18px;
+      color: #6366f1;
+    }
+
+    /* Buttons */
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-top: 20px;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .btn:hover { background: #4f46e5; }
+    .btn:disabled {
+      background: #334155;
+      color: #64748b;
+      cursor: not-allowed;
+    }
+    .btn-danger {
+      background: #dc2626;
+    }
+    .btn-danger:hover { background: #b91c1c; }
+
+    /* Progress section */
+    .progress-card { display: none; }
+    .progress-card.visible { display: block; }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 8px;
+      background: #0f172a;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .progress-bar {
+      height: 100%;
+      background: #6366f1;
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s;
+    }
+    .progress-bar.done { background: #22c55e; }
+    .progress-bar.has-errors { background: #f59e0b; }
+    .stats-row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .stat {
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .stat strong {
+      font-size: 16px;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .stat.sent strong { color: #22c55e; }
+    .stat.failed strong { color: #ef4444; }
+    .stat.blocked strong { color: #f59e0b; }
+    .stat.remaining strong { color: #94a3b8; }
+
+    /* Log */
+    .log-wrap {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      font-size: 12px;
+      font-family: "SF Mono", "Cascadia Mono", monospace;
+      padding: 8px 0;
+    }
+    .log-line {
+      padding: 3px 12px;
+      color: #94a3b8;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .log-line.ok { color: #4ade80; }
+    .log-line.fail { color: #f87171; }
+    .log-line.info { color: #818cf8; }
+
+    /* Summary */
+    .summary-box {
+      margin-top: 16px;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+    .summary-box.visible {
+      display: block;
+      background: rgba(34,197,94,0.08);
+      border: 1px solid rgba(34,197,94,0.2);
+      color: #4ade80;
+    }
+    .summary-box.has-errors {
+      background: rgba(245,158,11,0.08);
+      border: 1px solid rgba(245,158,11,0.2);
+      color: #fbbf24;
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav">
+    <h1>Invoice Dashboard</h1>
+    <span class="badge">LIVE</span>
+    <div class="nav-links">
+      <a href="/">Upload</a>
+      <a href="/broadcast" class="active">Broadcast</a>
+    </div>
+  </nav>
+
+  <div class="main">
+    <!-- Broadcast form card -->
+    <div class="card" id="formCard">
+      <h2>Broadcast Message</h2>
+
+      <textarea class="caption-area" id="caption" placeholder="Type your broadcast caption here... (Markdown supported)"></textarea>
+      <div class="caption-hint">Supports Telegram Markdown: *bold*, _italic_, `code`</div>
+
+      <div class="drop-zone" id="dropZone">
+        <div class="icon">+</div>
+        <p>Drop images or videos here, or click to browse</p>
+      </div>
+      <input type="file" id="fileInput" accept="image/*,video/*" multiple>
+
+      <div class="file-list" id="fileList"></div>
+
+      <div class="toggle-row">
+        <div>
+          <div class="toggle-label">Test Mode</div>
+          <div class="toggle-desc">Send only to test chat IDs from config</div>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" id="testToggle">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+
+      <div class="recipient-row">
+        <span>Recipients</span>
+        <span class="recipient-count" id="recipientCount">...</span>
+      </div>
+
+      <button class="btn" id="sendBtn" disabled>Send Broadcast</button>
+    </div>
+
+    <!-- Progress card -->
+    <div class="card progress-card" id="progressCard">
+      <h2>Broadcast Progress</h2>
+
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat sent">
+          <strong id="statSent">0</strong> Sent
+        </div>
+        <div class="stat failed">
+          <strong id="statFailed">0</strong> Failed
+        </div>
+        <div class="stat blocked">
+          <strong id="statBlocked">0</strong> Blocked
+        </div>
+        <div class="stat remaining">
+          <strong id="statRemaining">0</strong> Remaining
+        </div>
+      </div>
+
+      <div class="log-wrap" id="logWrap"></div>
+
+      <div class="summary-box" id="summaryBox"></div>
+    </div>
+  </div>
+
+  <script>
+    // Elements
+    var dropZone = document.getElementById('dropZone');
+    var fileInput = document.getElementById('fileInput');
+    var fileListEl = document.getElementById('fileList');
+    var captionEl = document.getElementById('caption');
+    var testToggle = document.getElementById('testToggle');
+    var recipientCountEl = document.getElementById('recipientCount');
+    var sendBtn = document.getElementById('sendBtn');
+    var formCard = document.getElementById('formCard');
+    var progressCard = document.getElementById('progressCard');
+    var progressBar = document.getElementById('progressBar');
+    var statSent = document.getElementById('statSent');
+    var statFailed = document.getElementById('statFailed');
+    var statBlocked = document.getElementById('statBlocked');
+    var statRemaining = document.getElementById('statRemaining');
+    var logWrap = document.getElementById('logWrap');
+    var summaryBox = document.getElementById('summaryBox');
+
+    var mediaFiles = []; // array of File objects
+
+    // ===============================
+    // Recipient count
+    // ===============================
+    function fetchRecipientCount() {
+      recipientCountEl.textContent = '...';
+      var testMode = testToggle.checked;
+      fetch('/api/broadcast/recipients?testMode=' + testMode)
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (data.success) {
+            recipientCountEl.textContent = data.count;
+          } else {
+            recipientCountEl.textContent = '?';
+          }
+          updateSendBtn();
+        })
+        .catch(function () {
+          recipientCountEl.textContent = '?';
+        });
+    }
+
+    fetchRecipientCount();
+    testToggle.addEventListener('change', fetchRecipientCount);
+
+    // ===============================
+    // Media file management
+    // ===============================
+    dropZone.addEventListener('click', function () { fileInput.click(); });
+
+    fileInput.addEventListener('change', function () {
+      for (var i = 0; i < fileInput.files.length; i++) {
+        addFile(fileInput.files[i]);
+      }
+      fileInput.value = '';
+    });
+
+    dropZone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', function () {
+      dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      dropZone.classList.remove('dragover');
+      for (var i = 0; i < e.dataTransfer.files.length; i++) {
+        addFile(e.dataTransfer.files[i]);
+      }
+    });
+
+    function addFile(file) {
+      if (mediaFiles.length >= 10) return;
+      var type = file.type || '';
+      if (!type.startsWith('image/') && !type.startsWith('video/')) return;
+      mediaFiles.push(file);
+      renderFileList();
+      updateSendBtn();
+    }
+
+    function removeFile(index) {
+      mediaFiles.splice(index, 1);
+      renderFileList();
+      updateSendBtn();
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function renderFileList() {
+      fileListEl.innerHTML = '';
+      if (mediaFiles.length > 0) {
+        dropZone.classList.add('has-files');
+      } else {
+        dropZone.classList.remove('has-files');
+      }
+
+      for (var i = 0; i < mediaFiles.length; i++) {
+        (function (idx) {
+          var file = mediaFiles[idx];
+          var item = document.createElement('div');
+          item.className = 'file-item';
+
+          var isImage = file.type.startsWith('image/');
+
+          if (isImage) {
+            var thumb = document.createElement('img');
+            thumb.className = 'file-thumb';
+            thumb.src = URL.createObjectURL(file);
+            item.appendChild(thumb);
+          } else {
+            var icon = document.createElement('div');
+            icon.className = 'file-icon';
+            icon.textContent = '\u25B6';
+            item.appendChild(icon);
+          }
+
+          var info = document.createElement('div');
+          info.className = 'file-info';
+          info.innerHTML = '<div class="file-name">' + escapeHtml(file.name) + '</div>' +
+            '<div class="file-size">' + formatSize(file.size) + '</div>';
+          item.appendChild(info);
+
+          var btn = document.createElement('button');
+          btn.className = 'file-remove';
+          btn.textContent = '\u00D7';
+          btn.onclick = function () { removeFile(idx); };
+          item.appendChild(btn);
+
+          fileListEl.appendChild(item);
+        })(i);
+      }
+    }
+
+    // ===============================
+    // Send button state
+    // ===============================
+    function updateSendBtn() {
+      var hasCaption = captionEl.value.trim().length > 0;
+      var hasMedia = mediaFiles.length > 0;
+      var hasRecipients = recipientCountEl.textContent !== '...' &&
+                          recipientCountEl.textContent !== '?' &&
+                          parseInt(recipientCountEl.textContent) > 0;
+      sendBtn.disabled = !(hasRecipients && (hasCaption || hasMedia));
+    }
+
+    captionEl.addEventListener('input', updateSendBtn);
+
+    // ===============================
+    // Send broadcast
+    // ===============================
+    sendBtn.addEventListener('click', function () {
+      var count = recipientCountEl.textContent;
+      var mode = testToggle.checked ? 'TEST' : 'PRODUCTION';
+      var msg = 'Send broadcast to ' + count + ' recipients?\nMode: ' + mode;
+      if (!confirm(msg)) return;
+
+      startBroadcast();
+    });
+
+    function startBroadcast() {
+      // Switch to progress view
+      sendBtn.disabled = true;
+      progressCard.classList.add('visible');
+      progressBar.style.width = '0%';
+      progressBar.className = 'progress-bar';
+      statSent.textContent = '0';
+      statFailed.textContent = '0';
+      statBlocked.textContent = '0';
+      statRemaining.textContent = '...';
+      logWrap.innerHTML = '';
+      summaryBox.className = 'summary-box';
+      summaryBox.textContent = '';
+
+      // Build form data
+      var formData = new FormData();
+      formData.append('caption', captionEl.value.trim());
+      formData.append('testMode', testToggle.checked ? 'true' : 'false');
+      for (var i = 0; i < mediaFiles.length; i++) {
+        formData.append('media', mediaFiles[i]);
+      }
+
+      // Fetch with streaming response
+      fetch('/api/broadcast/send', { method: 'POST', body: formData })
+        .then(function (response) {
+          if (response.status === 409) {
+            addLog('A broadcast is already in progress', 'fail');
+            sendBtn.disabled = false;
+            return;
+          }
+
+          var reader = response.body.getReader();
+          var decoder = new TextDecoder();
+          var buffer = '';
+
+          function read() {
+            reader.read().then(function (result) {
+              if (result.done) return;
+
+              buffer += decoder.decode(result.value, { stream: true });
+              var lines = buffer.split('\n');
+              buffer = lines.pop(); // keep incomplete line in buffer
+
+              for (var j = 0; j < lines.length; j++) {
+                var line = lines[j].trim();
+                if (line.startsWith('data: ')) {
+                  try {
+                    var event = JSON.parse(line.substring(6));
+                    handleEvent(event);
+                  } catch (e) { /* skip bad JSON */ }
+                }
+              }
+
+              read();
+            }).catch(function (err) {
+              addLog('Connection lost: ' + err.message, 'fail');
+            });
+          }
+
+          read();
+        })
+        .catch(function (err) {
+          addLog('Network error: ' + err.message, 'fail');
+          sendBtn.disabled = false;
+        });
+    }
+
+    // ===============================
+    // Event handler
+    // ===============================
+    var broadcastTotal = 0;
+    var sentCount = 0;
+    var failedCount = 0;
+    var blockedCount = 0;
+
+    function handleEvent(ev) {
+      if (ev.type === 'start') {
+        broadcastTotal = ev.total;
+        sentCount = 0;
+        failedCount = 0;
+        blockedCount = 0;
+        statRemaining.textContent = ev.total;
+        addLog('Broadcast started — ' + ev.total + ' recipients', 'info');
+      } else if (ev.type === 'result') {
+        var remaining = ev.total - ev.index;
+        statRemaining.textContent = remaining;
+        var pct = Math.round((ev.index / ev.total) * 100);
+        progressBar.style.width = pct + '%';
+
+        if (ev.success) {
+          sentCount++;
+          statSent.textContent = sentCount;
+          addLog('[' + ev.index + '/' + ev.total + '] ' + ev.chatId + ' — OK', 'ok');
+        } else {
+          failedCount++;
+          statFailed.textContent = failedCount;
+          if (ev.blocked) {
+            blockedCount++;
+            statBlocked.textContent = blockedCount;
+          }
+          addLog('[' + ev.index + '/' + ev.total + '] ' + ev.chatId + ' — ' + (ev.error || 'Failed'), 'fail');
+        }
+      } else if (ev.type === 'done') {
+        progressBar.style.width = '100%';
+        var s = ev.stats;
+        var hasErrors = s.failed > 0;
+        progressBar.classList.add(hasErrors ? 'has-errors' : 'done');
+
+        var text = 'Broadcast complete! Sent: ' + s.successful + ' / ' + s.total;
+        if (s.failed > 0) text += ' | Failed: ' + s.failed;
+        if (s.blocked > 0) text += ' | Blocked: ' + s.blocked;
+
+        summaryBox.textContent = text;
+        summaryBox.className = 'summary-box visible' + (hasErrors ? ' has-errors' : '');
+
+        addLog('Done!', 'info');
+        sendBtn.disabled = false;
+      } else if (ev.type === 'error') {
+        addLog('Error: ' + ev.message, 'fail');
+        sendBtn.disabled = false;
+      }
+    }
+
+    function addLog(text, cls) {
+      var line = document.createElement('div');
+      line.className = 'log-line' + (cls ? ' ' + cls : '');
+      line.textContent = text;
+      logWrap.appendChild(line);
+      logWrap.scrollTop = logWrap.scrollHeight;
+    }
+
+    function escapeHtml(str) {
+      var div = document.createElement('div');
+      div.textContent = str;
+      return div.innerHTML;
+    }
+  </script>
+</body>
+</html>
